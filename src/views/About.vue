@@ -1,20 +1,20 @@
 <template>
-	<div class="about">
-		<Navbar />
-		<UserSearch />
-	</div>
+  <div>
+    <Navbar />
+    <Info />
+  </div>
 </template>
 
 <script>
-	// @ is an alias to /src
-	import Navbar from "@/components/Navbar.vue";
-	import UserSearch from "@/components/UserSearch.vue";
+// @ is an alias to /src
+import Navbar from "@/components/Navbar.vue";
+import Info from "@/components/Info.vue";
 
-	export default {
-		name: "Home",
-		components: {
-			Navbar,
-			UserSearch
-		}
-	};
+export default {
+  name: "About",
+  components: {
+    Navbar,
+    Info
+  }
+};
 </script>

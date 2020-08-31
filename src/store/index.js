@@ -9,7 +9,8 @@ export default new Vuex.Store({
     token: localStorage.getItem("token") || null,
     userProfile: {},
     userDogs: [],
-    searchResults: [],
+    userEvents: [],
+    searchResults: {},
     mapboxKey: process.env.VUE_APP_MAPBOXKEY,
   },
   getters: {
@@ -24,6 +25,9 @@ export default new Vuex.Store({
     },
     getUserDogs(state) {
       return state.userDogs;
+    },
+    getUserEvents(state) {
+      return state.userEvents;
     },
     getSearchResults(state) {
       return state.searchResults;
@@ -44,6 +48,9 @@ export default new Vuex.Store({
     },
     retrieveUserDogs(state, dogs) {
       state.userDogs = dogs;
+    },
+    retrieveUserEvents(state, events) {
+      state.userEvents = events;
     },
     removeDogFromProfile(state, dogID) {
       state.userDogs = state.userDogs.filter((x) => x._id.$oid != dogID);
@@ -79,21 +86,8 @@ export default new Vuex.Store({
     // log out function
     destroyToken(context) {
       if (context.getters.loggedIn) {
-        // return new Promise((resolve, reject) => {
-        //   axios
-        //     .post("http://localhost:5000/api/auth/logout", {
-        //       token: context.getters.getToken,
-        //     })
-        //     .then((response) => {
         localStorage.removeItem("token");
         context.commit("destroyToken");
-        //   resolve(response);
-        // })
-        // .catch((error) => {
-        //   console.log(error);
-        //   reject(error);
-        // });
-        // });
       }
     },
     retrieveUserProfile(context) {
@@ -105,10 +99,20 @@ export default new Vuex.Store({
             },
           })
           .then((response) => {
+            response.data.events.forEach((event, i) => {
+              response.data.events[i] = JSON.parse(event);
+            });
             context.commit(
               "retrieveUserProfile",
               JSON.parse(response.data.user)
             );
+            context.commit(
+              "retrieveUserDogs",
+              response.data.dogs.length == 0
+                ? []
+                : JSON.parse(response.data.dogs)
+            );
+            context.commit("retrieveUserEvents", response.data.events);
           });
       }
     },
@@ -125,6 +129,22 @@ export default new Vuex.Store({
           });
       }
     },
+    retrieveUserEvents(context) {
+      if (context.getters.loggedIn) {
+        axios
+          .get("http://localhost:5000/api/events", {
+            headers: {
+              Authorization: "Bearer " + context.getters.getToken,
+            },
+          })
+          .then((response) => {
+            context.commit(
+              "retrieveUserEvents",
+              JSON.parse(response.data.events)
+            );
+          });
+      }
+    },
     removeDogFromProfile(context, dogID) {
       if (context.getters.loggedIn) {
         axios
@@ -137,7 +157,6 @@ export default new Vuex.Store({
       }
     },
     async searchUsers(context) {
-      console.log("searching for other users");
       const userSearchResults = await axios.get(
         "http://localhost:5000/api/user/search",
         {
@@ -146,46 +165,77 @@ export default new Vuex.Store({
           },
         }
       );
-      console.log(userSearchResults.data.users);
-      const usersFound = await JSON.parse(userSearchResults.data.users);
-      console.log(usersFound);
+      const usersFound = JSON.parse(userSearchResults.data.users);
+      const dogsFound = JSON.parse(userSearchResults.data.dogs);
 
-      await usersFound.forEach(async (user) => {
-        const allDogDetails = await Promise.all(
-          user.dogs.map((dog) =>
-            axios.get(`http://localhost:5000/api/dogs/${dog.$oid}`, {
-              headers: {
-                Authorization: "Bearer " + context.getters.getToken,
-              },
-            })
-          )
-        );
-        user.dogs = allDogDetails.map((dog) => dog.data);
+      context.commit("retrieveSearchResults", {
+        users: usersFound,
+        dogs: dogsFound,
       });
-
-      context.commit("retrieveSearchResults", usersFound);
-
-      // usersFound.forEach((user) => {
-      //     Promise.all(
-      //       user.dogs.map((dog) =>
-      //         axios.get(`http://localhost:5000/api/dogs/${dog.$oid}`, {
-      //           headers: {
-      //             Authorization: "Bearer " + context.getters.getToken,
-      //           },
-      //         })
-      //       )
-      //     ).then((results) => {
-      //       user.dogDetails = [];
-      //       results.forEach((result) => {
-      //         console.log(result.data);
-      //         user.dogDetails.push(result.data);
-      //       });
-      //     });
-      //   });
-      //   return userData;
-      // })
-      // .then((data) => context.commit("retrieveSearchResults", data));
     },
+    sendMeetingInvite(context, details) {
+      console.log(details);
+      axios
+        .post(
+          "http://localhost:5000/api/events",
+          {
+            location: details.location,
+            time: details.time,
+            invited: details.invited,
+            length: details.length,
+          },
+          {
+            headers: {
+              Authorization: "Bearer " + context.getters.getToken,
+            },
+          }
+        )
+        .then((response) => console.log("AXIOS RESPONSE: ", response))
+        .catch((err) => console.log("AXIOS ERROR: ", err));
+    },
+    updateEvent(context, details) {
+      axios.put(
+        `http://localhost:5000/api/events/${details.id}`,
+        {
+          location: details.location,
+          time: details.time,
+          length: details.length,
+          proposer: details.proposer,
+          invited: details.invited,
+        },
+        {
+          headers: {
+            Authorization: "Bearer " + context.getters.getToken,
+          },
+        }
+      );
+    },
+    acceptEvent(context, id) {
+	  console.log("Bearer " + context.getters.getToken);
+	  console.log(`http://localhost:5000/api/events/accept/${id}`);
+      axios
+        .put(`http://localhost:5000/api/events/accept/${id}`, {}, {
+          headers: {
+            Authorization: "Bearer " + context.getters.getToken,
+          },
+        })
+		.then((response) => console.log(response));
+		
+		
+	},
+	declineEvent(context, id) {
+		console.log("Bearer " + context.getters.getToken);
+		console.log(`http://localhost:5000/api/events/decline/${id}`);
+		axios
+		  .delete(`http://localhost:5000/api/events/decline/${id}`, {
+			headers: {
+			  Authorization: "Bearer " + context.getters.getToken,
+			},
+		  })
+		  .then((response) => console.log(response));
+		  
+		  
+	  },
   },
   modules: {},
 });
