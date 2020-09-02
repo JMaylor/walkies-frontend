@@ -50,7 +50,6 @@ export default {
   },
   methods: {
     login() {
-      console.log("testing");
       this.$store
         .dispatch("retrieveToken", {
           email: this.email,

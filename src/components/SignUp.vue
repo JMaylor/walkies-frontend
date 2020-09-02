@@ -85,12 +85,12 @@
 						location: this.location
 					})
 					.then(response => {
-						console.log(response);
 						this.$bvModal.hide("sign-up-modal");
 						this.$store.dispatch("retrieveToken", {
 							email: this.email,
 							password: this.password
 						});
+						return response
 					})
 					.catch(error => console.log(error));
 				// add catch to re-prompt form

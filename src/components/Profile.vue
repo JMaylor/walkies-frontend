@@ -544,7 +544,6 @@
 				this.$refs["dog-modal"].toggle();
 			},
 			addDog() {
-				console.log(this.$store.getters.getToken);
 				axios
 					.post(
 						"https://walkies-api.herokuapp.com/api/dogs",
@@ -561,8 +560,8 @@
 						}
 					)
 					.then(response => {
-						console.log(response);
 						this.$store.dispatch("retrieveUserDogs");
+						return response;
 					});
 			},
 			showMsgBox(e) {
@@ -570,7 +569,6 @@
 					.msgBoxConfirm("Are you sure you want to remove this pupper?")
 					.then(value => {
 						if (value) {
-							console.log("removing dog");
 							this.$store
 								.dispatch("removeDogFromProfile", e.target.id)
 								.then(this.$forceUpdate());

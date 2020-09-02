@@ -99,7 +99,6 @@ export default new Vuex.Store({
             },
           })
           .then((response) => {
-			  console.log(response.data.events);
             response.data.events.forEach((event, i) => {
               response.data.events[i] = JSON.parse(event);
             });
@@ -175,7 +174,6 @@ export default new Vuex.Store({
       });
     },
     sendMeetingInvite(context, details) {
-      console.log(details);
       axios
         .post(
           "https://walkies-api.herokuapp.com/api/events",
@@ -191,7 +189,6 @@ export default new Vuex.Store({
             },
           }
         )
-        .then((response) => console.log("AXIOS RESPONSE: ", response))
         .catch((err) => console.log("AXIOS ERROR: ", err));
     },
     updateEvent(context, details) {
@@ -212,30 +209,22 @@ export default new Vuex.Store({
       );
     },
     acceptEvent(context, id) {
-	  console.log("Bearer " + context.getters.getToken);
-	  console.log(`https://walkies-api.herokuapp.com/api/events/accept/${id}`);
       axios
         .put(`https://walkies-api.herokuapp.com/api/events/accept/${id}`, {}, {
           headers: {
             Authorization: "Bearer " + context.getters.getToken,
           },
         })
-		.then((response) => console.log(response));
 		
 		
 	},
 	declineEvent(context, id) {
-		console.log("Bearer " + context.getters.getToken);
-		console.log(`https://walkies-api.herokuapp.com/api/events/decline/${id}`);
 		axios
 		  .delete(`https://walkies-api.herokuapp.com/api/events/decline/${id}`, {
 			headers: {
 			  Authorization: "Bearer " + context.getters.getToken,
 			},
-		  })
-		  .then((response) => console.log(response));
-		  
-		  
+		  })  
 	  },
   },
   modules: {},
