@@ -1,23 +1,40 @@
 <template>
 	<div>
-		<h2>{{ userProfile.first_name }} {{ userProfile.last_name }}'s Dashboard</h2>
+		<h2>Hi, {{ userProfile.first_name }}!</h2>
 
 		<!-- Events -->
 
 		<b-container>
 			<!-- <Confirmed /> -->
 
-			<b-row>Confirmed Upcoming Events:</b-row>
-			<b-row>
-				<b-col cols="3" v-for="event in userConfirmedEvents" :key="event._id.$oid">
-					<b-card>
+			<b-row class="p-3">
+				<h2>Upcoming Walkies</h2>
+			</b-row>
+			<b-row class="p-3">
+				<b-col
+					cols="12"
+					sm="6"
+					md="4"
+					lg="3"
+					v-for="event in userConfirmedEvents"
+					:key="event._id.$oid"
+				>
+					<b-card header-bg-variant="success" header-text-variant="white">
 						<template v-slot:header>
 							<div class="float-left">{{ getOtherUser(event).first_name }}</div>
-							<div class="float-right"></div>
-							<p class="text-right m-0">
-								<font-awesome-icon icon="dog" />
-								{{ getOtherUser(event).dogs.length }}
-							</p>
+							<div class="float-right">
+								<p class="text-right m-0" :id="`popover-target-${event._id.$oid}`">
+									<font-awesome-icon icon="dog" />
+									{{ getOtherUser(event).dogs.length }}
+								</p>
+								<b-popover
+									:target="`popover-target-${event._id.$oid}`"
+									triggers="hover"
+									placement="rightbottom"
+								>
+									<b-table striped :items="getOtherUser(event).dogs" :fields="dogFields"></b-table>
+								</b-popover>
+							</div>
 						</template>
 						<b-card-sub-title>
 							{{
@@ -28,10 +45,10 @@
 							{{
 							Math.round(
 							getDistanceFromLatLonInKm(
-							event.invited.location.coordinates[1],
-							event.invited.location.coordinates[0],
-							event.proposer.location.coordinates[1],
-							event.proposer.location.coordinates[0]
+							event.location.coordinates[1],
+							event.location.coordinates[0],
+							userProfile.location.coordinates[1],
+							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
 							}}km
@@ -39,14 +56,18 @@
 						<template v-slot:footer>
 							<b-row>
 								<b-col>
-									<b-btn variant="outline-info" :id="event._id.$oid" @click="toggleEventModal">View Details</b-btn>
+									<b-btn
+										variant="outline-success"
+										:id="event._id.$oid"
+										@click="toggleEventModal"
+									>View Details</b-btn>
 								</b-col>
 							</b-row>
 						</template>
 					</b-card>
 				</b-col>
 				<b-modal ref="event-modal" id="event-modal" static>
-					<template v-slot:modal-title>Zoomies confirmed!</template>
+					<template v-slot:modal-title>Walkies</template>
 					<form>
 						<b-form-group>
 							<b-form-checkbox v-model="formEnabled" @input="resetForm">
@@ -96,40 +117,54 @@
 					</form>
 
 					<template v-slot:modal-footer>
-						<b-button
-							@click="declineEvent"
-							v-if="userConfirmedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
-							variant="outline-danger"
-						>Cancel Event</b-button>
-						<b-button @click="$bvModal.hide('event-modal')">Close</b-button>
-						<b-button @click="updateEvent" v-if="formEnabled" variant="outline-info">Send request</b-button>
-						<b-button
-							@click="acceptEvent"
-							v-if="!formEnabled && userInvitedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
-							variant="outline-success"
-						>Accept</b-button>
-						<b-button
-							@click="declineEvent"
-							v-if="!formEnabled && userInvitedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
-							variant="outline-danger"
-						>Decline</b-button>
+						<b-container>
+							<b-row align-h="around">
+								<b-button
+									@click="declineEvent"
+									v-if="(userConfirmedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0) || (userAwaitingEvents.filter(event => event._id.$oid == meetupEvent._id.$oid))"
+									variant="outline-danger"
+								>Cancel Event</b-button>
+								<b-button @click="updateEvent" v-if="formEnabled" variant="outline-info">Send request</b-button>
+								<b-button
+									@click="acceptEvent"
+									v-if="!formEnabled && userInvitedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
+									variant="outline-success"
+								>Accept</b-button>
+								<b-button
+									@click="declineEvent"
+									v-if="!formEnabled && userInvitedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
+									variant="outline-danger"
+								>Decline</b-button>
+							</b-row>
+						</b-container>
 					</template>
 				</b-modal>
 			</b-row>
+		</b-container>
 
-			<!-- Invited -->
-
-			<b-row>Here are your invites:</b-row>
-			<b-row>
-				<b-col cols="3" v-for="event in userInvitedEvents" :key="event._id.$oid">
-					<b-card>
+		<!-- Invited -->
+		<b-container>
+			<b-row class="p-3">
+				<h2>Invites received from other users!</h2>
+			</b-row>
+			<b-row class="p-3">
+				<b-col cols="12" sm="6" md="4" lg="3" v-for="event in userInvitedEvents" :key="event._id.$oid">
+					<b-card header-bg-variant="warning">
 						<template v-slot:header>
 							<div class="float-left">{{ event.proposer.first_name }}</div>
-							<div class="float-right"></div>
-							<p class="text-right m-0">
-								<font-awesome-icon icon="dog" />
-								{{ event.proposer.dogs.length }}
-							</p>
+							<div class="float-right">
+								<p class="text-right m-0" :id="`popover-target-${event._id.$oid}`">
+									<font-awesome-icon icon="dog" />
+									{{ event.proposer.dogs.length }}
+								</p>
+								<b-popover
+									:target="`popover-target-${event._id.$oid}`"
+									triggers="hover"
+									placement="rightbottom"
+								>
+									<b-table striped :items="event.proposer.dogs" :fields="dogFields"></b-table>
+								</b-popover>
+							</div>
 						</template>
 						<b-card-sub-title>
 							{{
@@ -140,10 +175,10 @@
 							{{
 							Math.round(
 							getDistanceFromLatLonInKm(
-							event.invited.location.coordinates[1],
-							event.invited.location.coordinates[0],
-							event.proposer.location.coordinates[1],
-							event.proposer.location.coordinates[0]
+							event.location.coordinates[1],
+							event.location.coordinates[0],
+							userProfile.location.coordinates[1],
+							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
 							}}km
@@ -151,24 +186,40 @@
 						<template v-slot:footer>
 							<b-row>
 								<b-col>
-									<b-btn variant="outline-info" :id="event._id.$oid" @click="toggleEventModal">View Details</b-btn>
+									<b-btn
+										variant="outline-warning"
+										:id="event._id.$oid"
+										@click="toggleEventModal"
+									>View Details</b-btn>
 								</b-col>
 							</b-row>
 						</template>
 					</b-card>
 				</b-col>
 			</b-row>
-			<b-row>Pending response from other user:</b-row>
-			<b-row>
-				<b-col cols="3" v-for="event in userAwaitingEvents" :key="event._id.$oid">
-					<b-card>
+		</b-container>
+		<b-container>
+			<b-row class="p-3">
+				<h2>Pending response from other user:</h2>
+			</b-row>
+			<b-row class="p-3">
+				<b-col cols="12" sm="6" md="4" lg="3" v-for="event in userAwaitingEvents" :key="event._id.$oid">
+					<b-card header-bg-variant="info">
 						<template v-slot:header>
 							<div class="float-left">{{ event.invited.first_name }}</div>
-							<div class="float-right"></div>
-							<p class="text-right m-0">
-								<font-awesome-icon icon="dog" />
-								{{ event.invited.dogs.length }}
-							</p>
+							<div class="float-right">
+								<p class="text-right m-0" :id="`popover-target-${event._id.$oid}`">
+									<font-awesome-icon icon="dog" />
+									{{ event.invited.dogs.length }}
+								</p>
+								<b-popover
+									:target="`popover-target-${event._id.$oid}`"
+									triggers="hover"
+									placement="rightbottom"
+								>
+									<b-table striped :items="event.invited.dogs" :fields="dogFields"></b-table>
+								</b-popover>
+							</div>
 						</template>
 						<b-card-sub-title>
 							{{
@@ -179,10 +230,10 @@
 							{{
 							Math.round(
 							getDistanceFromLatLonInKm(
-							event.invited.location.coordinates[1],
-							event.invited.location.coordinates[0],
-							event.proposer.location.coordinates[1],
-							event.proposer.location.coordinates[0]
+							event.location.coordinates[1],
+							event.location.coordinates[0],
+							userProfile.location.coordinates[1],
+							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
 							}}km
@@ -199,47 +250,53 @@
 			</b-row>
 		</b-container>
 		<b-container>
-			<b-row class="justify-content-center">
-				<b-col v-for="dog in userDogs" :key="dog._id.$oid">
+			<b-row class="p-3">
+				<b-col>
+					<b-btn @click="toggleDogModal">Add new dog</b-btn>
+					<b-modal ref="dog-modal" id="dog-modal" static>
+						<template v-slot:modal-title>Add a new dog!</template>
+						<form>
+							<b-form-group
+								label="Name"
+								label-for="dog-name-input"
+								invalid-feedback="Dog name is required"
+							>
+								<b-form-input class="text-center" id="dog-name-input" v-model="dogName" required></b-form-input>
+							</b-form-group>
+							<b-form-group
+								label="Breed"
+								label-for="dog-breed-input"
+								invalid-feedback="Dog Breed is required"
+							>
+								<b-form-select
+									class="text-center"
+									id="dog-breed-input"
+									v-model="dogBreed"
+									required
+									:options="breedOptions"
+								></b-form-select>
+							</b-form-group>
+							<b-form-group
+								label="Date of Birth"
+								label-for="dog-birth-date-input"
+								invalid-feedback="Please provide a date of birth"
+							>
+								<b-form-datepicker id="dog-birth-date-input" v-model="dogBirthDate"></b-form-datepicker>
+							</b-form-group>
+						</form>
+
+						<template v-slot:modal-footer>
+							<b-button @click="$bvModal.hide('dog-modal')">Cancel</b-button>
+							<b-button variant="outline-dark" @click="addDog">Add Dog</b-button>
+						</template>
+					</b-modal>
+				</b-col>
+			</b-row>
+			<b-row class="justify-content-center p-3">
+				<b-col cols="12" sm="6" md="4" lg="3" v-for="dog in userDogs" :key="dog._id.$oid">
 					<p :id="dog.name">{{ dog.name }}</p>
 					<b-button @click="showMsgBox" :id="dog._id.$oid" variant="outline-danger">Remove</b-button>
 				</b-col>
-				<b-col>
-					<b-btn @click="toggleDogModal">Add new dog</b-btn>
-				</b-col>
-				<b-modal ref="dog-modal" id="dog-modal" static>
-					<template v-slot:modal-title>Add a new dog!</template>
-					<form>
-						<b-form-group label="Name" label-for="dog-name-input" invalid-feedback="Dog name is required">
-							<b-form-input class="text-center" id="dog-name-input" v-model="dogName" required></b-form-input>
-						</b-form-group>
-						<b-form-group
-							label="Breed"
-							label-for="dog-breed-input"
-							invalid-feedback="Dog Breed is required"
-						>
-							<b-form-select
-								class="text-center"
-								id="dog-breed-input"
-								v-model="dogBreed"
-								required
-								:options="breedOptions"
-							></b-form-select>
-						</b-form-group>
-						<b-form-group
-							label="Date of Birth"
-							label-for="dog-birth-date-input"
-							invalid-feedback="Please provide a date of birth"
-						>
-							<b-form-datepicker id="dog-birth-date-input" v-model="dogBirthDate"></b-form-datepicker>
-						</b-form-group>
-					</form>
-
-					<template v-slot:modal-footer>
-						<b-button @click="$bvModal.hide('dog-modal')">Cancel</b-button>
-						<b-button variant="outline-primary" @click="addDog">Add Dog</b-button>
-					</template>
-				</b-modal>
 			</b-row>
 		</b-container>
 	</div>
@@ -267,6 +324,7 @@
 					coordinates: []
 				},
 				durationOptions: ["30 mins", "1 hour", "2 hours or more"],
+				dogFields: ["name", "breed"],
 				dogName: "",
 				dogBreed: "",
 				dogBirthDate: "",
@@ -357,8 +415,7 @@
 				return d;
 			},
 			toggleEventModal(e) {
-				console.log(e);
-				this.$refs["event-modal"].toggle();
+				this.formEnabled = false;
 				this.meetupEvent = this.userEvents.filter(
 					event => e.target.id == event._id.$oid
 				)[0];
@@ -371,7 +428,11 @@
 					"hh:MM:ss"
 				);
 				this.meetupDuration = this.meetupEvent.length;
-				this.createEventMapbox("event-map", e);
+				this.$refs["event-modal"].toggle();
+
+				setTimeout(() => {
+					this.createEventMapbox();
+				}, 100);
 			},
 			createEventMapbox() {
 				mapboxgl.accessToken = this.mapboxKey;
@@ -466,10 +527,11 @@
 				this.$store.dispatch("retrieveUserProfile");
 			},
 			acceptEvent() {
-				this.$store.dispatch("acceptEvent", this.meetupEvent._id.$oid)
+				this.$store.dispatch("acceptEvent", this.meetupEvent._id.$oid);
+				this.$refs["event-modal"].toggle();
 			},
-						declineEvent() {
-				this.$store.dispatch("declineEvent", this.meetupEvent._id.$oid)
+			declineEvent() {
+				this.$store.dispatch("declineEvent", this.meetupEvent._id.$oid);
 			},
 			getOtherUser(event) {
 				if (event.invited._id.$oid == this.userProfile._id.$oid) {
@@ -485,7 +547,7 @@
 				console.log(this.$store.getters.getToken);
 				axios
 					.post(
-						"http://localhost:5000/api/dogs",
+						"https://walkies-api.herokuapp.com/api/dogs",
 						{
 							name: this.dogName,
 							breed: this.dogBreed,
@@ -525,6 +587,11 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+	.container {
+		background-color: rgba(255, 255, 255, 0.8);
+		border-radius: 10px;
+		margin-bottom: 20px;
+	}
 	#event-map {
 		width: 100%;
 		height: 300px;

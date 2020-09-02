@@ -98,7 +98,7 @@ export default {
   methods: {
     createNewUser() {
       axios
-        .post("http://localhost:5000/api/auth/signup", {
+        .post("https://walkies-api.herokuapp.com/api/auth/signup", {
           email: this.email,
           password: this.password,
           first_name: this.first_name,
