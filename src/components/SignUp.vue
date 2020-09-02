@@ -96,7 +96,6 @@
 				// add catch to re-prompt form
 			},
 			createSignUpMaxBox() {
-				console.log(this.mapboxKey);
 				mapboxgl.accessToken = this.mapboxKey;
 				const map = new mapboxgl.Map({
 					container: "mapContainer",
