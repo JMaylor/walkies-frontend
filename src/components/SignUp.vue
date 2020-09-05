@@ -217,10 +217,10 @@
 					// Zoom up close if user accepted giving coordinates
 					zoom: 5,
 					// Bounds are a square containing roughly the M25.
-					maxBounds: [
-						[-0.570532, 51.232299],
-						[0.283078, 51.707375]
-					]
+					// maxBounds: [
+					// 	[-0.570532, 51.232299],
+					// 	[0.283078, 51.707375]
+					// ]
 				});
 
 				// Request to get the user's current location
