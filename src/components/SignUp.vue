@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<!-- nav button -->
+		<!-- Nav Button -->
 		<b-nav-item @click="toggleModal">Register</b-nav-item>
 
 		<!-- Sign Up Modal -->
@@ -193,6 +193,7 @@
 						return response;
 					})
 					.catch(error => {
+						console.log(error);
 						// Almost all validation on this form matches the MongoDB model specification.
 						// Only thing we have to wait for response for is if the email is in use.
 						// If it is, then set email taken, which adds feedback to the email input field.
@@ -212,10 +213,10 @@
 				const map = new mapboxgl.Map({
 					container: "mapContainer",
 					style: "mapbox://styles/mapbox/outdoors-v11",
-					// Center is London area, or user location if supplied
+					// Center is London-ish area by default
 					center: [-0.496934, 51.437032],
 					// Zoom up close if user accepted giving coordinates
-					zoom: 5,
+					zoom: 5
 					// Bounds are a square containing roughly the M25.
 					// maxBounds: [
 					// 	[-0.570532, 51.232299],
@@ -248,7 +249,7 @@
 						map.flyTo({
 							center: [long, lat],
 							zoom: 12
-						})
+						});
 					},
 
 					// if user says no, then log error to console.

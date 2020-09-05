@@ -5,7 +5,7 @@
 		<!-- Events -->
 
 		<b-container>
-			<!-- <Confirmed /> -->
+			<!-- Confirmed -->
 
 			<b-row class="p-3">
 				<h2>Upcoming Walkies</h2>
@@ -112,7 +112,10 @@
 							label-for="event-map"
 							invalid-feedback="Please select suggested location on the map"
 						>
-							<div id="event-map"></div>
+							<div>
+								<div id="event-map"></div>
+								<div class="map-overlay" id="legend"></div>
+							</div>
 						</b-form-group>
 					</form>
 
@@ -121,18 +124,35 @@
 							<b-row align-h="around">
 								<b-button
 									@click="declineEvent"
-									v-if="(userConfirmedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0) || (userAwaitingEvents.filter(event => event._id.$oid == meetupEvent._id.$oid))"
+									v-if="
+                    userConfirmedEvents.filter(
+                      (event) => event._id.$oid == meetupEvent._id.$oid
+                    ).length > 0 ||
+                      userAwaitingEvents.filter(
+                        (event) => event._id.$oid == meetupEvent._id.$oid
+                      )
+                  "
 									variant="outline-danger"
 								>Cancel Event</b-button>
 								<b-button @click="updateEvent" v-if="formEnabled" variant="outline-info">Send request</b-button>
 								<b-button
 									@click="acceptEvent"
-									v-if="!formEnabled && userInvitedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
+									v-if="
+                    !formEnabled &&
+                      userInvitedEvents.filter(
+                        (event) => event._id.$oid == meetupEvent._id.$oid
+                      ).length > 0
+                  "
 									variant="outline-success"
 								>Accept</b-button>
 								<b-button
 									@click="declineEvent"
-									v-if="!formEnabled && userInvitedEvents.filter(event => event._id.$oid == meetupEvent._id.$oid).length > 0"
+									v-if="
+                    !formEnabled &&
+                      userInvitedEvents.filter(
+                        (event) => event._id.$oid == meetupEvent._id.$oid
+                      ).length > 0
+                  "
 									variant="outline-danger"
 								>Decline</b-button>
 							</b-row>
@@ -249,6 +269,9 @@
 				</b-col>
 			</b-row>
 		</b-container>
+
+		<!-- Dogs -->
+
 		<b-container>
 			<b-row class="p-3">
 				<b-col>
@@ -294,8 +317,20 @@
 			</b-row>
 			<b-row class="justify-content-center p-3">
 				<b-col cols="12" sm="6" md="4" lg="3" v-for="dog in userDogs" :key="dog._id.$oid">
-					<p :id="dog.name">{{ dog.name }}</p>
-					<b-button @click="showMsgBox" :id="dog._id.$oid" variant="outline-danger">Remove</b-button>
+					<b-card header-bg-variant="secondary" header-text-variant="white">
+						<template v-slot:header>
+							{{ dog.name }}
+						</template>
+						<b-card-sub-title>
+							{{ dog.date_of_birth }}
+						</b-card-sub-title>
+						<b-card-body>
+							{{ dog.breed }}
+						</b-card-body>
+						<template v-slot:footer>
+							<b-button @click="showMsgBox" :id="dog._id.$oid" variant="outline-danger">Remove</b-button>
+						</template>
+					</b-card>
 				</b-col>
 			</b-row>
 		</b-container>
@@ -449,23 +484,35 @@
 
 				map.on("load", function() {
 					map.resize();
+
+					var layers = ["You", "Other User", "Suggested"];
+					var colors = ["red", "blue", "green"];
+					for (let index = 0; index < layers.length; index++) {
+						var layer = layers[index];
+						var item = document.createElement("div");
+						var value = document.createElement("span");
+						value.style.cssText = "color: " + colors[index];
+						value.innerHTML = layer;
+						item.appendChild(value);
+						document.getElementById("legend").appendChild(item);
+					}
 				});
 
-				new mapboxgl.Marker({ color: "gray" })
+				new mapboxgl.Marker({ color: "red" })
 					.setLngLat({
 						lng: this.meetupEvent.invited.location.coordinates[0],
 						lat: this.meetupEvent.invited.location.coordinates[1]
 					})
 					.addTo(map);
 
-				new mapboxgl.Marker({ color: "gray" })
+				new mapboxgl.Marker({ color: "blue" })
 					.setLngLat({
 						lng: this.meetupEvent.proposer.location.coordinates[0],
 						lat: this.meetupEvent.proposer.location.coordinates[1]
 					})
 					.addTo(map);
 
-				new mapboxgl.Marker({ color: "gold" })
+				new mapboxgl.Marker({ color: "green" })
 					.setLngLat({
 						lng: this.meetupEvent.location.coordinates[0],
 						lat: this.meetupEvent.location.coordinates[1]
@@ -497,7 +544,7 @@
 						Math.round(e.lngLat.lat * 10000) / 10000
 					];
 
-					new mapboxgl.Marker({ color: "gold" })
+					new mapboxgl.Marker({ color: "green" })
 						.setLngLat(e.lngLat)
 						.addTo(map)
 						.getElement()
@@ -593,5 +640,31 @@
 	#event-map {
 		width: 100%;
 		height: 300px;
+	}
+
+	.map-overlay {
+		position: absolute;
+		bottom: 216px;
+		left: 0;
+		background: rgba(255, 255, 255, 0.8);
+		margin-left: 20px;
+		font-family: Arial, sans-serif;
+		overflow: auto;
+		border-radius: 3px;
+	}
+
+	#legend {
+		padding: 10px;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		line-height: 18px;
+		margin-bottom: 40px;
+	}
+
+	.legend-key {
+		display: inline-block;
+		border-radius: 20%;
+		width: 20px;
+		height: 10px;
+		margin-right: 5px;
 	}
 </style>
