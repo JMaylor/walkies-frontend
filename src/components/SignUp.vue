@@ -252,9 +252,12 @@
 					},
 
 					// if user says no, then log error to console.
-					console.log
+					console.log,
+					{
+						enableHighAccuracy: true,
+						maximumAge: 0
+					}
 				);
-		
 
 				// Once map is loaded, resize it to fit the width of the modal, which is repsonse to device.
 				map.on("load", function() {
@@ -264,34 +267,6 @@
 				// Adds basic zoom and rotate control
 				const nav = new mapboxgl.NavigationControl();
 				map.addControl(nav, "top-right");
-
-				// Request to get the user's current location
-				window.navigator.geolocation.getCurrentPosition(
-					position => {
-						// get the latitude and longitude returned
-						const lat = position.coords.latitude;
-						const long = position.coords.longitude;
-						// set the location equal to this
-						this.location.coordinates = [
-							Math.round(long * 10000) / 10000,
-							Math.round(lat * 10000) / 10000
-						];
-						// add marker on map for their location
-						const marker = new mapboxgl.Marker({ color: "red" })
-							.setLngLat({
-								lng: long,
-								lat: lat
-							})
-							.addTo(map);
-						return marker;
-					},
-					// if user says no, then log error to console.
-					console.log,
-					{
-						enableHighAccuracy: true,
-						maximumAge: 0
-					}
-				);
 
 				// When user clicks on the map, the location is stored in a data variable
 				map.on("click", e => {
