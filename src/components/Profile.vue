@@ -42,7 +42,7 @@
 							}}
 						</b-card-sub-title>
 						<b-card-body>
-							{{
+							<p>{{
 							Math.round(
 							getDistanceFromLatLonInKm(
 							event.location.coordinates[1],
@@ -51,7 +51,8 @@
 							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
-							}}km
+							}}km away</p>
+							<a target="_blank" :href="`https://www.google.com/maps?saddr=${userProfile.location.coordinates[1]},${userProfile.location.coordinates[0]}&daddr=${event.location.coordinates[1]},${event.location.coordinates[0]}`">Get directions</a>
 						</b-card-body>
 						<template v-slot:footer>
 							<b-row>
@@ -192,7 +193,7 @@
 							}}
 						</b-card-sub-title>
 						<b-card-body>
-							{{
+							<p>{{
 							Math.round(
 							getDistanceFromLatLonInKm(
 							event.location.coordinates[1],
@@ -201,7 +202,8 @@
 							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
-							}}km
+							}}km away</p>
+							<a target="_blank" :href="`https://www.google.com/maps?saddr=${userProfile.location.coordinates[1]},${userProfile.location.coordinates[0]}&daddr=${event.location.coordinates[1]},${event.location.coordinates[0]}`">Get directions</a>
 						</b-card-body>
 						<template v-slot:footer>
 							<b-row>
@@ -218,6 +220,9 @@
 				</b-col>
 			</b-row>
 		</b-container>
+
+		<!-- Pending responses -->
+
 		<b-container>
 			<b-row class="p-3">
 				<h2>Pending response from other user:</h2>
@@ -247,7 +252,7 @@
 							}}
 						</b-card-sub-title>
 						<b-card-body>
-							{{
+							<p>{{
 							Math.round(
 							getDistanceFromLatLonInKm(
 							event.location.coordinates[1],
@@ -256,7 +261,8 @@
 							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
-							}}km
+							}}km away</p>
+							<a target="_blank" :href="`https://www.google.com/maps?saddr=${userProfile.location.coordinates[1]},${userProfile.location.coordinates[0]}&daddr=${event.location.coordinates[1]},${event.location.coordinates[0]}`">Get directions</a>
 						</b-card-body>
 						<template v-slot:footer>
 							<b-row>
@@ -316,17 +322,11 @@
 				</b-col>
 			</b-row>
 			<b-row class="justify-content-center p-3">
-				<b-col cols="12" sm="6" md="4" lg="3" v-for="dog in userDogs" :key="dog._id.$oid">
+				<b-col cols="12" sm="6" md="4" lg="3" v-for="dog in userProfile.dogs" :key="dog._id.$oid">
 					<b-card header-bg-variant="secondary" header-text-variant="white">
-						<template v-slot:header>
-							{{ dog.name }}
-						</template>
-						<b-card-sub-title>
-							{{ dog.date_of_birth }}
-						</b-card-sub-title>
-						<b-card-body>
-							{{ dog.breed }}
-						</b-card-body>
+						<template v-slot:header>{{ dog.name }}</template>
+						<b-card-sub-title>{{ formatDate(dog.date_of_birth) }}</b-card-sub-title>
+						<b-card-body>{{ dog.breed }}</b-card-body>
 						<template v-slot:footer>
 							<b-button @click="showMsgBox" :id="dog._id.$oid" variant="outline-danger">Remove</b-button>
 						</template>
@@ -339,8 +339,8 @@
 
 <script>
 	const axios = require("axios");
-	const dateFormat = require("dateformat");
 	const mapboxgl = require("mapbox-gl/dist/mapbox-gl.js");
+	const moment = require("moment");
 
 	export default {
 		name: "Profile",
@@ -390,21 +390,21 @@
 				return this.$store.getters.getUserEvents;
 			},
 			userAwaitingEvents() {
-				return this.userEvents.filter(
+				return this.userProfile.events.filter(
 					event =>
 						event.status == "pending" &&
 						event.proposer._id.$oid == this.userProfile._id.$oid
 				);
 			},
 			userInvitedEvents() {
-				return this.userEvents.filter(
+				return this.userProfile.events.filter(
 					event =>
 						event.status == "pending" &&
 						event.invited._id.$oid == this.userProfile._id.$oid
 				);
 			},
 			userConfirmedEvents() {
-				return this.userEvents.filter(event => event.status == "accepted");
+				return this.userProfile.events.filter(event => event.status == "accepted");
 			},
 			mapboxKey() {
 				return this.$store.getters.getMapboxKey;
@@ -418,14 +418,10 @@
 				}
 			},
 			setModalDetails() {
-				this.meetupDate = dateFormat(
-					this.meetupEvent.time.$date,
-					"yyyy-mm-dd"
-				);
-				this.meetupTime = dateFormat(
-					this.meetupEvent.time.$date,
-					"hh:MM:ss"
-				);
+				const m = new moment(this.meetupEvent.time.$date);
+				console.log(m.toISOString());
+				this.meetupDate = m.format('YYYY-MM-DD')
+				this.meetupTime = m.format('HH:mm:ss')
 				this.meetupDuration = this.meetupEvent.length;
 				this.meetupLocation = {
 					type: "Point",
@@ -451,17 +447,12 @@
 			},
 			toggleEventModal(e) {
 				this.formEnabled = false;
-				this.meetupEvent = this.userEvents.filter(
+				this.meetupEvent = this.userProfile.events.filter(
 					event => e.target.id == event._id.$oid
 				)[0];
-				this.meetupDate = dateFormat(
-					this.meetupEvent.time.$date,
-					"yyyy-mm-dd"
-				);
-				this.meetupTime = dateFormat(
-					this.meetupEvent.time.$date,
-					"hh:MM:ss"
-				);
+				const m = new moment(this.meetupEvent.time.$date);
+				this.meetupDate = m.format('YYYY-MM-DD')
+				this.meetupTime = m.format('HH:mm:ss')
 				this.meetupDuration = this.meetupEvent.length;
 				this.$refs["event-modal"].toggle();
 
@@ -482,20 +473,31 @@
 					]
 				});
 
+
+				// Remove legend if it already exists
+				document.getElementById("legend").innerHTML="";
+
+				// Create the legend
+				const layers = ["You", "Other User", "Suggested"];
+				const svg = [
+					'<svg display="block" height="20px" width="13px" viewBox="0 0 27 41"><g fill-rule="nonzero"><g transform="translate(3.0, 29.0)" fill="#000000"><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="10.5" ry="5.25002273"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="10.5" ry="5.25002273"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="9.5" ry="4.77275007"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="8.5" ry="4.29549936"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="7.5" ry="3.81822308"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="6.5" ry="3.34094679"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="5.5" ry="2.86367051"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="4.5" ry="2.38636864"></ellipse></g><g fill="red"><path d="M27,13.5 C27,19.074644 20.250001,27.000002 14.75,34.500002 C14.016665,35.500004 12.983335,35.500004 12.25,34.500002 C6.7499993,27.000002 0,19.222562 0,13.5 C0,6.0441559 6.0441559,0 13.5,0 C20.955844,0 27,6.0441559 27,13.5 Z"></path></g><g opacity="0.25" fill="#000000"><path d="M13.5,0 C6.0441559,0 0,6.0441559 0,13.5 C0,19.222562 6.7499993,27 12.25,34.5 C13,35.522727 14.016664,35.500004 14.75,34.5 C20.250001,27 27,19.074644 27,13.5 C27,6.0441559 20.955844,0 13.5,0 Z M13.5,1 C20.415404,1 26,6.584596 26,13.5 C26,15.898657 24.495584,19.181431 22.220703,22.738281 C19.945823,26.295132 16.705119,30.142167 13.943359,33.908203 C13.743445,34.180814 13.612715,34.322738 13.5,34.441406 C13.387285,34.322738 13.256555,34.180814 13.056641,33.908203 C10.284481,30.127985 7.4148684,26.314159 5.015625,22.773438 C2.6163816,19.232715 1,15.953538 1,13.5 C1,6.584596 6.584596,1 13.5,1 Z"></path></g><g transform="translate(6.0, 7.0)" fill="#FFFFFF"></g><g transform="translate(8.0, 8.0)"><circle fill="#000000" opacity="0.25" cx="5.5" cy="5.5" r="5.4999962"></circle><circle fill="#FFFFFF" cx="5.5" cy="5.5" r="5.4999962"></circle></g></g></svg>',
+					'<svg display="block" height="20px" width="13px" viewBox="0 0 27 41"><g fill-rule="nonzero"><g transform="translate(3.0, 29.0)" fill="#000000"><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="10.5" ry="5.25002273"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="10.5" ry="5.25002273"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="9.5" ry="4.77275007"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="8.5" ry="4.29549936"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="7.5" ry="3.81822308"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="6.5" ry="3.34094679"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="5.5" ry="2.86367051"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="4.5" ry="2.38636864"></ellipse></g><g fill="blue"><path d="M27,13.5 C27,19.074644 20.250001,27.000002 14.75,34.500002 C14.016665,35.500004 12.983335,35.500004 12.25,34.500002 C6.7499993,27.000002 0,19.222562 0,13.5 C0,6.0441559 6.0441559,0 13.5,0 C20.955844,0 27,6.0441559 27,13.5 Z"></path></g><g opacity="0.25" fill="#000000"><path d="M13.5,0 C6.0441559,0 0,6.0441559 0,13.5 C0,19.222562 6.7499993,27 12.25,34.5 C13,35.522727 14.016664,35.500004 14.75,34.5 C20.250001,27 27,19.074644 27,13.5 C27,6.0441559 20.955844,0 13.5,0 Z M13.5,1 C20.415404,1 26,6.584596 26,13.5 C26,15.898657 24.495584,19.181431 22.220703,22.738281 C19.945823,26.295132 16.705119,30.142167 13.943359,33.908203 C13.743445,34.180814 13.612715,34.322738 13.5,34.441406 C13.387285,34.322738 13.256555,34.180814 13.056641,33.908203 C10.284481,30.127985 7.4148684,26.314159 5.015625,22.773438 C2.6163816,19.232715 1,15.953538 1,13.5 C1,6.584596 6.584596,1 13.5,1 Z"></path></g><g transform="translate(6.0, 7.0)" fill="#FFFFFF"></g><g transform="translate(8.0, 8.0)"><circle fill="#000000" opacity="0.25" cx="5.5" cy="5.5" r="5.4999962"></circle><circle fill="#FFFFFF" cx="5.5" cy="5.5" r="5.4999962"></circle></g></g></svg>',
+					'<svg display="block" height="20px" width="13px" viewBox="0 0 27 41"><g fill-rule="nonzero"><g transform="translate(3.0, 29.0)" fill="#000000"><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="10.5" ry="5.25002273"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="10.5" ry="5.25002273"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="9.5" ry="4.77275007"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="8.5" ry="4.29549936"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="7.5" ry="3.81822308"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="6.5" ry="3.34094679"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="5.5" ry="2.86367051"></ellipse><ellipse opacity="0.04" cx="10.5" cy="5.80029008" rx="4.5" ry="2.38636864"></ellipse></g><g fill="green"><path d="M27,13.5 C27,19.074644 20.250001,27.000002 14.75,34.500002 C14.016665,35.500004 12.983335,35.500004 12.25,34.500002 C6.7499993,27.000002 0,19.222562 0,13.5 C0,6.0441559 6.0441559,0 13.5,0 C20.955844,0 27,6.0441559 27,13.5 Z"></path></g><g opacity="0.25" fill="#000000"><path d="M13.5,0 C6.0441559,0 0,6.0441559 0,13.5 C0,19.222562 6.7499993,27 12.25,34.5 C13,35.522727 14.016664,35.500004 14.75,34.5 C20.250001,27 27,19.074644 27,13.5 C27,6.0441559 20.955844,0 13.5,0 Z M13.5,1 C20.415404,1 26,6.584596 26,13.5 C26,15.898657 24.495584,19.181431 22.220703,22.738281 C19.945823,26.295132 16.705119,30.142167 13.943359,33.908203 C13.743445,34.180814 13.612715,34.322738 13.5,34.441406 C13.387285,34.322738 13.256555,34.180814 13.056641,33.908203 C10.284481,30.127985 7.4148684,26.314159 5.015625,22.773438 C2.6163816,19.232715 1,15.953538 1,13.5 C1,6.584596 6.584596,1 13.5,1 Z"></path></g><g transform="translate(6.0, 7.0)" fill="#FFFFFF"></g><g transform="translate(8.0, 8.0)"><circle fill="#000000" opacity="0.25" cx="5.5" cy="5.5" r="5.4999962"></circle><circle fill="#FFFFFF" cx="5.5" cy="5.5" r="5.4999962"></circle></g></g></svg>'
+				];
+				for (let index = 0; index < layers.length; index++) {
+					const layer = layers[index];
+					const item = document.createElement("div");
+					const value = document.createElement("span");
+					const icon = document.createElement("div");
+					value.innerHTML = layer;
+					icon.style.cssText = "display: inline-block";
+					icon.innerHTML = svg[index];
+					item.appendChild(value).appendChild(icon);
+					document.getElementById("legend").appendChild(item);
+				}
+
 				map.on("load", function() {
 					map.resize();
-
-					var layers = ["You", "Other User", "Suggested"];
-					var colors = ["red", "blue", "green"];
-					for (let index = 0; index < layers.length; index++) {
-						var layer = layers[index];
-						var item = document.createElement("div");
-						var value = document.createElement("span");
-						value.style.cssText = "color: " + colors[index];
-						value.innerHTML = layer;
-						item.appendChild(value);
-						document.getElementById("legend").appendChild(item);
-					}
 				});
 
 				new mapboxgl.Marker({ color: "red" })
@@ -552,16 +554,20 @@
 				});
 			},
 			formatDate(date) {
-				return dateFormat(date, "ddd, mmm dS, hh:MM TT");
+				const m = new moment(date);
+				return m.format("ddd, MMM Do, HH:mm A");
 			},
 			updateEvent() {
+				const m = new moment(`${this.meetupDate} ${this.meetupTime}`)
+				const time = m.utc().format('YYYY-MM-DD HH:mm:ss')
+				console.log(time);
 				this.$store.dispatch("updateEvent", {
 					id: this.meetupEvent._id.$oid,
 					location:
 						this.meetupLocation.coordinates.length == 0
 							? this.meetupEvent.location
 							: this.meetupLocation,
-					time: `${this.meetupDate} ${this.meetupTime}`,
+					time: time,
 					length: this.meetupDuration,
 					proposer: this.userProfile._id.$oid,
 					invited:
@@ -607,7 +613,7 @@
 						}
 					)
 					.then(response => {
-						this.$store.dispatch("retrieveUserDogs");
+						this.$store.dispatch("retrieveUserProfile");
 						return response;
 					});
 			},
@@ -644,13 +650,14 @@
 
 	.map-overlay {
 		position: absolute;
-		bottom: 216px;
+		bottom: 196px;
 		left: 0;
 		background: rgba(255, 255, 255, 0.8);
 		margin-left: 20px;
 		font-family: Arial, sans-serif;
 		overflow: auto;
 		border-radius: 3px;
+		text-align: left;
 	}
 
 	#legend {

@@ -10,7 +10,7 @@ export default new Vuex.Store({
     userProfile: {},
     userDogs: [],
     userEvents: [],
-    searchResults: {},
+    searchResults: [],
     mapboxKey: process.env.VUE_APP_MAPBOXKEY,
   },
   getters: {
@@ -99,20 +99,22 @@ export default new Vuex.Store({
             },
           })
           .then((response) => {
-            response.data.events.forEach((event, i) => {
-              response.data.events[i] = JSON.parse(event);
+            const userProfile = JSON.parse(response.data.user);
+            userProfile.events.forEach((event, i) => {
+              userProfile.events[i] = JSON.parse(event);
             });
-            context.commit(
-              "retrieveUserProfile",
-              JSON.parse(response.data.user)
-            );
-            context.commit(
-              "retrieveUserDogs",
-              response.data.dogs.length == 0
-                ? []
-                : JSON.parse(response.data.dogs)
-            );
-            context.commit("retrieveUserEvents", response.data.events.sort((a ,b) => a.time.$date - b.time.$date));
+            userProfile.dogs.forEach((dog, i) => {
+              userProfile.dogs[i] = JSON.parse(dog);
+            });
+            console.log(userProfile);
+            context.commit("retrieveUserProfile", userProfile);
+            // context.commit(
+            //   "retrieveUserDogs",
+            //   response.data.dogs.length == 0
+            //     ? []
+            //     : JSON.parse(response.data.dogs)
+            // );
+            // context.commit("retrieveUserEvents", response.data.events.sort((a ,b) => a.time.$date - b.time.$date));
           });
       }
     },
@@ -164,14 +166,18 @@ export default new Vuex.Store({
             Authorization: "Bearer " + context.getters.getToken,
           },
         }
-      );
-      const usersFound = JSON.parse(userSearchResults.data.users);
-      const dogsFound = JSON.parse(userSearchResults.data.dogs);
+	  );
+	  console.log(userSearchResults.data.users);
 
-      context.commit("retrieveSearchResults", {
-        users: usersFound,
-        dogs: dogsFound,
-      });
+      userSearchResults.data.users.forEach((user, userIndex) => {
+		  userSearchResults.data.users[userIndex] = JSON.parse(user);
+		  userSearchResults.data.users[userIndex].dogs.forEach((dog, dogIndex) => {
+			  userSearchResults.data.users[userIndex].dogs[dogIndex] = JSON.parse(dog);
+		  })
+	  });
+	  console.log(userSearchResults.data.users);
+	  
+      context.commit("retrieveSearchResults", userSearchResults.data.users);
     },
     sendMeetingInvite(context, details) {
       axios
@@ -192,6 +198,7 @@ export default new Vuex.Store({
         .catch((err) => console.log("AXIOS ERROR: ", err));
     },
     updateEvent(context, details) {
+		console.log(details);
       axios.put(
         `https://walkies-api.herokuapp.com/api/events/${details.id}`,
         {
@@ -209,23 +216,23 @@ export default new Vuex.Store({
       );
     },
     acceptEvent(context, id) {
-      axios
-        .put(`https://walkies-api.herokuapp.com/api/events/accept/${id}`, {}, {
+      axios.put(
+        `https://walkies-api.herokuapp.com/api/events/accept/${id}`,
+        {},
+        {
           headers: {
             Authorization: "Bearer " + context.getters.getToken,
           },
-        })
-		
-		
-	},
-	declineEvent(context, id) {
-		axios
-		  .delete(`https://walkies-api.herokuapp.com/api/events/decline/${id}`, {
-			headers: {
-			  Authorization: "Bearer " + context.getters.getToken,
-			},
-		  })  
-	  },
+        }
+      );
+    },
+    declineEvent(context, id) {
+      axios.delete(`https://walkies-api.herokuapp.com/api/events/decline/${id}`, {
+        headers: {
+          Authorization: "Bearer " + context.getters.getToken,
+        },
+      });
+    },
   },
   modules: {},
 });

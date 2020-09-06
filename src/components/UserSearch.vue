@@ -7,20 +7,26 @@
 		<b-btn @click="searchUsers" class="mb-2">Search</b-btn>
 		<b-container>
 			<b-row>
-				<b-col cols="6" md="4" lg="3" v-for="user in search.users" :key="user._id.$oid">
-					<b-card>
+				<b-col cols="6" md="4" lg="2" v-for="user in search" :key="user._id.$oid">
+					<b-card header-bg-variant="info">
 						<template v-slot:header>
-							<h4 class="mb-0">{{ user.first_name }}</h4>
+							<div class="float-left">{{ user.first_name }}</div>
+							<div class="float-right">
+								<p class="text-right m-0" :id="`popover-target-${user._id.$oid}`">
+									<font-awesome-icon icon="dog" />
+									{{ user.dogs.length }}
+								</p>
+								<b-popover
+									:target="`popover-target-${user._id.$oid}`"
+									triggers="hover"
+									placement="rightbottom"
+								>
+									<b-table striped :items="user.dogs" :fields="dogFields"></b-table>
+								</b-popover>
+							</div>
 						</template>
 						<b-card-text>
-							<p>{{ user.dogs.length }} dogs total</p>
-							<div v-if="user.dogs.length > 0">
-								<div v-if="user.dogs[0].$oid">
-									<div v-for="dog in search.dogs" :key="dog._id.$oid">
-										<p v-if="dog.owner.$oid == user._id.$oid">{{ dog.name }}, the {{ dog.breed }}</p>
-									</div>
-								</div>
-							</div>
+							Lives
 							{{
 							Math.round(
 							getDistanceFromLatLonInKm(
@@ -30,7 +36,7 @@
 							userProfile.location.coordinates[0]
 							) * 10
 							) / 10
-							}}km
+							}}km away from you
 						</b-card-text>
 						<template v-slot:footer>
 							<b-btn variant="success" @click="toggleMeetupModal" :id="user._id.$oid">Go walkies!</b-btn>
@@ -88,6 +94,7 @@
 
 <script>
 	const mapboxgl = require("mapbox-gl/dist/mapbox-gl.js");
+	const moment = require("moment");
 
 	export default {
 		name: "UserSearch",
@@ -103,7 +110,8 @@
 					coordinates: []
 				},
 				meetupDuration: "",
-				durationOptions: ["30 mins", "1 hour", "2 hours or more"]
+				durationOptions: ["30 mins", "1 hour", "2 hours or more"],
+				dogFields: ["name", "breed"],
 			};
 		},
 		methods: {
@@ -128,12 +136,16 @@
 				return d;
 			},
 			sendMeetingInvite() {
+				const m = new moment(`${this.meetupDate} ${this.meetupTime}`);
+				const time = m.utc().format('YYYY-MM-DD HH:mm:ss')
 				this.$store.dispatch("sendMeetingInvite", {
 					location: this.meetupLocation,
-					time: `${this.meetupDate} ${this.meetupTime}`,
+					time: time,
 					invited: this.meetupUser,
 					length: this.meetupDuration
 				});
+				this.$refs["meetup-modal"].toggle();
+
 			},
 			createEventMapbox() {
 				mapboxgl.accessToken = this.mapboxKey;
@@ -159,7 +171,7 @@
 					})
 					.addTo(map);
 
-				const invitedUser = this.search.users.filter(
+				const invitedUser = this.search.filter(
 					user => user._id.$oid == this.meetupUser
 				)[0];
 
