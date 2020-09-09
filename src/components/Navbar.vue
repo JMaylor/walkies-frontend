@@ -15,7 +15,7 @@
 			<Login v-if="loginModalVisible" v-on:close-modal="loginModalVisible=false" />
 			<b-nav-item v-if="!loggedIn" @click="loginModalVisible = true">Login</b-nav-item>
 
-			<b-nav-item v-if="loggedIn" @click="this.$store.dispatch('destroyToken')">Logout</b-nav-item>
+			<b-nav-item v-if="loggedIn" @click="logOut">Logout</b-nav-item>
 		</b-navbar-nav>
 	</b-navbar>
 </template>
@@ -41,7 +41,12 @@
 				return this.$store.getters.loggedIn;
 			}
 		},
-		methods: {}
+		methods: {
+			logOut() {
+				this.$store.dispatch("destroyToken");
+				this.$router.push({ name: "Home" });
+			}
+		}
 	};
 </script>
 

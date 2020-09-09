@@ -7,7 +7,6 @@
 			</h3>
 		</b-row>
 		<b-row>
-
 			<!-- Dropdown to select the radius to search -->
 			<b-dropdown
 				:text="`${$store.state.searchParameters.selected} mile${$store.state.searchParameters.selected === 1 ? '' : 's'}`"
@@ -22,10 +21,9 @@
 			</b-dropdown>
 		</b-row>
 		<b-row>
-
 			<!-- List of users returned from query -->
 			<b-col cols="6" v-for="user in $store.state.searchResults" :key="user._id.$oid">
-				<User v-bind:user="user" v-on:open-modal="openMeetupModal(user)"/>
+				<User v-bind:user="user" v-on:open-modal="openMeetupModal(user)" />
 			</b-col>
 		</b-row>
 
@@ -37,18 +35,18 @@
 <script>
 	// @ is an alias to /src
 	import User from "@/components/Search/User";
-	import NewEventModal from "@/components/Search/NewEventModal"
+	import NewEventModal from "@/components/Search/NewEventModal";
 
 	export default {
 		name: "Search",
 		components: {
 			User,
-			NewEventModal,
+			NewEventModal
 		},
 		data() {
 			return {
-				selectedUser: '',
-				meetupModalVisible: false,
+				selectedUser: "",
+				meetupModalVisible: false
 			};
 		},
 		methods: {
@@ -66,6 +64,8 @@
 				this.$store
 					.dispatch("retrieveUserProfile")
 					.then(this.$store.dispatch("searchUsers"));
+			} else {
+				this.$store.dispatch("searchUsers");
 			}
 		}
 	};
