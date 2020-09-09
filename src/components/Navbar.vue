@@ -1,36 +1,33 @@
 <template>
-	<div>
-		<b-navbar type="dark" variant="dark" fixed="top">
-			<b-navbar-brand target="_blank" href="https://www.maylor.io/">maylor.io</b-navbar-brand>
+	<b-navbar type="dark" variant="dark" fixed="top">
+		<b-navbar-brand target="_blank" href="https://www.maylor.io/">maylor.io</b-navbar-brand>
 
-			<b-navbar-nav>
-				<b-nav-item to="/">Home</b-nav-item>
-				<b-nav-item v-if="loggedIn" to="/search">Search</b-nav-item>
-				<b-nav-item to="/about">About</b-nav-item>
+		<b-navbar-brand to="/" class="main-branding">Walkies</b-navbar-brand>
 
-				<SignUp v-if="signUpModalVisible" v-on:close-modal="signUpModalVisible=false" />
-				<b-nav-item v-if="!loggedIn" @click="signUpModalVisible = true">Register</b-nav-item>
+		<b-navbar-nav>
+			<b-nav-item to="/">Home</b-nav-item>
+			<b-nav-item v-if="loggedIn" to="/search">Search</b-nav-item>
+			<b-nav-item to="/about">About</b-nav-item>
 
-				<Login v-if="loginModalVisible" v-on:close-modal="loginModalVisible=false" />
-				<b-nav-item v-if="!loggedIn" @click="loginModalVisible = true">Login</b-nav-item>
+			<SignUp v-if="signUpModalVisible" v-on:close-modal="signUpModalVisible=false" />
+			<b-nav-item v-if="!loggedIn" @click="signUpModalVisible = true">Register</b-nav-item>
 
-				<Logout v-if="loggedIn" />
+			<Login v-if="loginModalVisible" v-on:close-modal="loginModalVisible=false" />
+			<b-nav-item v-if="!loggedIn" @click="loginModalVisible = true">Login</b-nav-item>
 
-			</b-navbar-nav>
-		</b-navbar>
-	</div>
+			<b-nav-item v-if="loggedIn" @click="this.$store.dispatch('destroyToken')">Logout</b-nav-item>
+		</b-navbar-nav>
+	</b-navbar>
 </template>
 
 <script>
 	import SignUp from "./Auth/SignUp.vue";
-	import Logout from "./Logout.vue";
 	import Login from "./Auth/Login.vue";
 
 	export default {
 		name: "Navbar",
 		components: {
 			SignUp,
-			Logout,
 			Login
 		},
 		data() {
@@ -49,4 +46,9 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped></style>
+<style>
+	@import url("https://fonts.googleapis.com/css2?family=Pacifico&display=swap");
+	.main-branding {
+		font-family: "Pacifico", cursive;
+	}
+</style>

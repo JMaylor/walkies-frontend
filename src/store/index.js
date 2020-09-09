@@ -4,16 +4,38 @@ const axios = require("axios");
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
-  state: {
+// initial state
+const getDefaultState = () => {
+  return {
     token: localStorage.getItem("token") || null,
     userProfile: {},
     userDogs: [],
     userEvents: [],
     selectedEvent: {},
+    selectedUser: {},
+    searchParameters: {
+      distance: {
+        selected: 10,
+        options: {
+          1: "1 mile",
+          5: "5 miles",
+          10: "10 miles",
+          20: "20 miles,",
+        },
+      },
+      selected: 10,
+      options: [1, 5, 10, 20],
+    },
     searchResults: [],
     mapboxKey: process.env.VUE_APP_MAPBOXKEY,
-  },
+  };
+};
+
+// set initial state
+const state = getDefaultState();
+
+export default new Vuex.Store({
+  state,
   getters: {
     loggedIn(state) {
       return state.token !== null;
@@ -41,8 +63,8 @@ export default new Vuex.Store({
     retrieveToken(state, token) {
       state.token = token;
     },
-    destroyToken(state) {
-      state.token = null;
+    resetState(state) {
+      Object.assign(state, getDefaultState());
     },
     retrieveUserProfile(state, profile) {
       state.userProfile = profile;
@@ -61,6 +83,12 @@ export default new Vuex.Store({
     },
     selectEvent(state, event) {
       state.selectedEvent = event;
+    },
+    selectUser(state, user) {
+      state.selectedUser = user;
+    },
+    setSearchDistance(state, distance) {
+      state.searchParameters.selected = distance;
     },
   },
   actions: {
@@ -89,10 +117,8 @@ export default new Vuex.Store({
 
     // log out function
     destroyToken(context) {
-      if (context.getters.loggedIn) {
-        localStorage.removeItem("token");
-        context.commit("destroyToken");
-      }
+      localStorage.removeItem("token");
+      context.commit("resetState");
     },
     retrieveUserProfile(context) {
       if (context.getters.loggedIn) {

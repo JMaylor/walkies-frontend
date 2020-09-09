@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div>
     <Profile v-if="loggedIn" />
 	<Promo v-if="!loggedIn" />
   </div>

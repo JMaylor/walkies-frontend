@@ -1,5 +1,5 @@
 <template>
-	<b-modal ref="event-modal" id="event-modal" @hidden="$emit('close-modal')" static>
+	<b-modal ref="event-modal" @hidden="$emit('close-modal')" static>
 		<template v-slot:modal-title>Walkies</template>
 		<form>
 			<b-form-group>

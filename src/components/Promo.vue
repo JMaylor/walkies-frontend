@@ -5,7 +5,7 @@
 				<div class="shader rounded">
 					<b-jumbotron class="mt-4" bg-variant="transparent">
 						<template v-slot:header>
-							Walkies
+							<span class="main-branding">Walkies</span>
 							<br />
 							<b-img src="mstile-70x70.png"></b-img>
 						</template>

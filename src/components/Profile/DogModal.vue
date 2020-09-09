@@ -24,7 +24,7 @@
 		</form>
 
 		<template v-slot:modal-footer>
-			<b-button @click="$bvModal.hide('dog-modal')">Cancel</b-button>
+			<b-button @click="$refs['dog-modal'].toggle()">Cancel</b-button>
 			<b-button variant="outline-dark" @click="addDog">Add Dog</b-button>
 		</template>
 	</b-modal>

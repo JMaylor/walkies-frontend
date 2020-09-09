@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
 		<Navbar />
-		<router-view style="margin-top: 56px;"/>
+		<router-view style="padding-top: 56px;"/>
 	</div>
 </template>
 
@@ -20,7 +20,6 @@ export default {
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		background-color: rgba(0, 0, 0, 0.25);
-		text-align: center;
 		color: #2c3e50;
 		min-height: 100vh;
 	}
@@ -32,18 +31,5 @@ export default {
 		background-size: cover;
 		background-repeat: no-repeat;
 		background-position: center;
-	}
-
-	#nav {
-		padding: 30px;
-	}
-
-	#nav a {
-		font-weight: bold;
-		color: #2c3e50;
-	}
-
-	#nav a.router-link-exact-active {
-		color: #42b983;
 	}
 </style>
