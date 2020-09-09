@@ -1,29 +1,37 @@
 <template>
 	<div id="app">
-		<router-view />
+		<Navbar />
+		<router-view style="margin-top: 56px;"/>
 	</div>
 </template>
+
+<script>
+import Navbar from "@/components/Navbar.vue";
+export default {
+	components: {
+		Navbar
+	}
+}
+</script>
 
 <style>
 	#app {
 		font-family: Avenir, Helvetica, Arial, sans-serif;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
-		/* min-height: 100vh;
-		height: 100%;
-		width: 100%;
-		background-color: #ffffff6e; */
+		background-color: rgba(0, 0, 0, 0.25);
 		text-align: center;
 		color: #2c3e50;
+		min-height: 100vh;
 	}
 
 	body {
 		min-height: 100vh;
-		height: 100%;
-		background-image: url("https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80");
+		background-image: url("https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80");
 		background-attachment: fixed;
 		background-size: cover;
 		background-repeat: no-repeat;
+		background-position: center;
 	}
 
 	#nav {

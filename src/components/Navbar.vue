@@ -1,29 +1,30 @@
 <template>
 	<div>
-		<b-navbar type="dark" variant="info">
-			<!-- <b-navbar-brand target="_blank" href="https://www.maylor.io/">maylor.io</b-navbar-brand> -->
+		<b-navbar type="dark" variant="dark" fixed="top">
+			<b-navbar-brand target="_blank" href="https://www.maylor.io/">maylor.io</b-navbar-brand>
 
 			<b-navbar-nav>
-				<b-nav-item v-if="loggedIn" to="/">Dashboard</b-nav-item>
+				<b-nav-item to="/">Home</b-nav-item>
 				<b-nav-item v-if="loggedIn" to="/search">Search</b-nav-item>
-			</b-navbar-nav>
-
-			<!-- Right aligned nav items -->
-			<b-navbar-nav class="ml-auto">
 				<b-nav-item to="/about">About</b-nav-item>
-				<SignUp v-if="!loggedIn" />
-				<Login v-if="!loggedIn" />
+
+				<SignUp v-if="signUpModalVisible" v-on:close-modal="signUpModalVisible=false" />
+				<b-nav-item v-if="!loggedIn" @click="signUpModalVisible = true">Register</b-nav-item>
+
+				<Login v-if="loginModalVisible" v-on:close-modal="loginModalVisible=false" />
+				<b-nav-item v-if="!loggedIn" @click="loginModalVisible = true">Login</b-nav-item>
+
 				<Logout v-if="loggedIn" />
+
 			</b-navbar-nav>
 		</b-navbar>
 	</div>
 </template>
 
 <script>
-	// const axios = require("axios");
-	import SignUp from "./SignUp.vue";
+	import SignUp from "./Auth/SignUp.vue";
 	import Logout from "./Logout.vue";
-	import Login from "./Login.vue";
+	import Login from "./Auth/Login.vue";
 
 	export default {
 		name: "Navbar",
@@ -33,7 +34,10 @@
 			Login
 		},
 		data() {
-			return {};
+			return {
+				loginModalVisible: false,
+				signUpModalVisible: false
+			};
 		},
 		computed: {
 			loggedIn() {

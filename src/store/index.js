@@ -10,6 +10,7 @@ export default new Vuex.Store({
     userProfile: {},
     userDogs: [],
     userEvents: [],
+    selectedEvent: {},
     searchResults: [],
     mapboxKey: process.env.VUE_APP_MAPBOXKEY,
   },
@@ -57,6 +58,9 @@ export default new Vuex.Store({
     },
     retrieveSearchResults(state, searchResults) {
       state.searchResults = searchResults;
+    },
+    selectEvent(state, event) {
+      state.selectedEvent = event;
     },
   },
   actions: {
@@ -155,7 +159,10 @@ export default new Vuex.Store({
               Authorization: "Bearer " + context.getters.getToken,
             },
           })
-          .then(context.commit("removeDogFromProfile", dogID));
+          .then((response) => {
+            console.log(response);
+            context.dispatch("retrieveUserProfile");
+          });
       }
     },
     async searchUsers(context) {
@@ -166,17 +173,21 @@ export default new Vuex.Store({
             Authorization: "Bearer " + context.getters.getToken,
           },
         }
-	  );
-	  console.log(userSearchResults.data.users);
+      );
+      console.log(userSearchResults.data.users);
 
       userSearchResults.data.users.forEach((user, userIndex) => {
-		  userSearchResults.data.users[userIndex] = JSON.parse(user);
-		  userSearchResults.data.users[userIndex].dogs.forEach((dog, dogIndex) => {
-			  userSearchResults.data.users[userIndex].dogs[dogIndex] = JSON.parse(dog);
-		  })
-	  });
-	  console.log(userSearchResults.data.users);
-	  
+        userSearchResults.data.users[userIndex] = JSON.parse(user);
+        userSearchResults.data.users[userIndex].dogs.forEach(
+          (dog, dogIndex) => {
+            userSearchResults.data.users[userIndex].dogs[dogIndex] = JSON.parse(
+              dog
+            );
+          }
+        );
+      });
+      console.log(userSearchResults.data.users);
+
       context.commit("retrieveSearchResults", userSearchResults.data.users);
     },
     sendMeetingInvite(context, details) {
@@ -198,40 +209,46 @@ export default new Vuex.Store({
         .catch((err) => console.log("AXIOS ERROR: ", err));
     },
     updateEvent(context, details) {
-		console.log(details);
-      axios.put(
-        `https://walkies-api.herokuapp.com/api/events/${details.id}`,
-        {
-          location: details.location,
-          time: details.time,
-          length: details.length,
-          proposer: details.proposer,
-          invited: details.invited,
-        },
-        {
-          headers: {
-            Authorization: "Bearer " + context.getters.getToken,
+      console.log(details);
+      axios
+        .put(
+          `https://walkies-api.herokuapp.com/api/events/${details.id}`,
+          {
+            location: details.location,
+            time: details.time,
+            length: details.length,
+            proposer: details.proposer,
+            invited: details.invited,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: "Bearer " + context.getters.getToken,
+            },
+          }
+        )
+        .then(context.dispatch("retrieveUserProfile"));
     },
     acceptEvent(context, id) {
-      axios.put(
-        `https://walkies-api.herokuapp.com/api/events/accept/${id}`,
-        {},
-        {
+      axios
+        .put(
+          `https://walkies-api.herokuapp.com/api/events/accept/${id}`,
+          {},
+          {
+            headers: {
+              Authorization: "Bearer " + context.getters.getToken,
+            },
+          }
+        )
+        .then(context.dispatch("retrieveUserProfile"));
+    },
+    declineEvent(context, id) {
+      axios
+        .delete(`https://walkies-api.herokuapp.com/api/events/decline/${id}`, {
           headers: {
             Authorization: "Bearer " + context.getters.getToken,
           },
-        }
-      );
-    },
-    declineEvent(context, id) {
-      axios.delete(`https://walkies-api.herokuapp.com/api/events/decline/${id}`, {
-        headers: {
-          Authorization: "Bearer " + context.getters.getToken,
-        },
-      });
+        })
+        .then(context.dispatch("retrieveUserProfile"));
     },
   },
   modules: {},

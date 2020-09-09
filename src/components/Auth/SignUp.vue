@@ -1,92 +1,74 @@
 <template>
-	<div>
-		<!-- Nav Button -->
-		<b-nav-item @click="toggleModal">Register</b-nav-item>
+	<b-modal ref="sign-up-modal" @hidden="$emit('close-modal')" static>
+		<template v-slot:modal-title>Register for Walkies!</template>
+		<b-form id="sign-up-form" @submit="submitSignUpForm">
+			<!-- Email -->
+			<label class="float-left" for="email-input">Email Address</label>
+			<b-input
+				@focus="emailTaken = true"
+				v-model="email"
+				:state="emailValidation && emailTaken"
+				id="email-input"
+			></b-input>
+			<br />
 
-		<!-- Sign Up Modal -->
-		<b-modal ref="sign-up-modal" id="sign-up-modal" static>
-			<template v-slot:modal-title>Register for Walkies!</template>
-			<b-form id="sign-up-form" @submit="submitSignUpForm">
-				<!-- Email -->
-				<label for="email-input">Email Address</label>
-				<b-input
-					@focus="emailTaken = true"
-					v-model="email"
-					:state="emailValidation && emailTaken"
-					id="email-input"
-					class="text-center"
-				></b-input>
-				<br />
+			<!-- First Name -->
+			<label class="float-left" for="first-name-input">First Name</label>
+			<b-input v-model="first_name" :state="firstNameValidation" id="first-name-input"></b-input>
+			<br />
 
-				<!-- First Name -->
-				<label for="first-name-input">First Name</label>
-				<b-input
-					v-model="first_name"
-					:state="firstNameValidation"
-					id="first-name-input"
-					class="text-center"
-				></b-input>
-				<br />
+			<!-- Surname -->
+			<label class="float-left" for="last-name-input">Last Name</label>
+			<b-input v-model="last_name" :state="lastNameValidation" id="last-name-input"></b-input>
+			<br />
 
-				<!-- Surname -->
-				<label for="last-name-input">Last Name</label>
-				<b-input
-					v-model="last_name"
-					:state="lastNameValidation"
-					id="last-name-input"
-					class="text-center"
-				></b-input>
-				<br />
+			<!-- Password -->
+			<label class="float-left" for="password-input">Password</label>
+			<b-input
+				v-model="password"
+				:state="passwordValidation"
+				id="password-input"
+				type="password"
+				aria-describedby="password-help-block"
+			></b-input>
+			<b-form-text
+				id="password-help-block"
+				class="text-left"
+			>Must be 8-20 characters long, and contain at least one lowercase letter, uppercase letter, number and special character.</b-form-text>
+			<br />
 
-				<!-- Password -->
-				<label for="password-input">Password</label>
-				<b-input
-					v-model="password"
-					:state="passwordValidation"
-					id="password-input"
-					class="text-center"
-					type="password"
-					aria-describedby="password-help-block"
-				></b-input>
-				<b-form-text
-					id="password-help-block"
-				>Must be 8-20 characters long, and contain at least one lowercase letter, uppercase letter, number and special character.</b-form-text>
-				<br />
+			<!-- Confirm Password -->
+			<label class="float-left" for="confirm-password-input">Confirm Password</label>
+			<b-input
+				v-model="confirmPassword"
+				:state="confirmPasswordValidation"
+				id="confirm-password-input"
+				type="password"
+			></b-input>
+			<br />
 
-				<!-- Confirm Password -->
-				<label for="confirm-password-input">Confirm Password</label>
-				<b-input
-					v-model="confirmPassword"
-					:state="confirmPasswordValidation"
-					id="confirm-password-input"
-					class="text-center"
-					type="password"
-				></b-input>
-				<br />
-
-				<!-- Location -->
-				<label for="location-input">Your Location - Select On Map</label>
-				<b-input
-					v-model="locationString"
-					:state="locationValidation"
-					id="location-input"
-					class="text-center mb-2"
-					disabled
-				></b-input>
-				<div id="mapContainer"></div>
-			</b-form>
-			{{ formError }}
-			<template v-slot:modal-footer>
-				<b-button @click="$bvModal.hide('sign-up-modal')">Cancel</b-button>
-				<b-button
-					variant="outline-info"
-					type="submit"
-					form="sign-up-form"
-					:disabled="formValidation"
-				>Register</b-button>
-			</template>
-		</b-modal>
-	</div>
+			<!-- Location -->
+			<label class="float-left" for="location-input">Your Location - Select On Map</label>
+			<b-input
+				v-model="locationString"
+				:state="locationValidation"
+				id="location-input"
+				class="mb-2"
+				disabled
+			></b-input>
+			<div id="mapContainer"></div>
+		</b-form>
+		{{ formError }}
+		<template v-slot:modal-footer>
+			<b-button @click="$refs['sign-up-modal'].toggle()">Cancel</b-button>
+			<b-button
+				variant="outline-info"
+				type="submit"
+				form="sign-up-form"
+				:disabled="formValidation"
+			>Register</b-button>
+		</template>
+	</b-modal>
 </template>
 
 <script>
@@ -134,22 +116,32 @@
 				return this.$store.getters.getMapboxKey;
 			},
 			emailValidation() {
-				return validator.isEmail(this.email);
+				return this.email.length == 0
+					? null
+					: validator.isEmail(this.email);
 			},
 			firstNameValidation() {
-				return validator.isAlpha(this.first_name);
+				return this.first_name.length == 0
+					? null
+					: validator.isAlpha(this.first_name);
 			},
 			lastNameValidation() {
-				return validator.isAlpha(this.last_name);
+				return this.last_name.length == 0
+					? null
+					: validator.isAlpha(this.last_name);
 			},
 			passwordValidation() {
-				return schema.validate(this.password);
+				return this.password.length == 0
+					? null
+					: schema.validate(this.password);
 			},
 			confirmPasswordValidation() {
 				if (this.password.length == 0) {
 					return null;
 				} else {
-					return this.confirmPassword === this.password;
+					return this.confirmPassword.length == 0
+						? null
+						: this.confirmPassword === this.password;
 				}
 			},
 			locationString() {
@@ -185,7 +177,7 @@
 					})
 					.then(response => {
 						// If user sign-up is successful, hide the sign-up modal and then log in and retreive token straight away
-						this.$bvModal.hide("sign-up-modal");
+						this.$refs["sign-up-modal"].toggle();
 						this.$store.dispatch("retrieveToken", {
 							email: this.email,
 							password: this.password
@@ -283,12 +275,9 @@
 					}
 
 					// Add the new marker
-					const marker = new mapboxgl.Marker({ color: "red" })
+					new mapboxgl.Marker({ color: "red" })
 						.setLngLat(e.lngLat)
 						.addTo(map);
-
-					console.log(e.lngLat);
-					return marker;
 				});
 			},
 			toggleModal() {
@@ -296,6 +285,10 @@
 				this.$refs["sign-up-modal"].toggle();
 				this.createSignUpMaxBox();
 			}
+		},
+		mounted() {
+			console.log("mounting the sign up modal");
+			this.toggleModal();
 		}
 	};
 </script>
