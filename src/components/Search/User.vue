@@ -1,8 +1,11 @@
 <template>
-	<b-card header-bg-variant="info">
-		<template v-slot:header>
-			<div class="float-left">{{ user.first_name }}</div>
-			<div class="float-right">
+	<b-col cols="12" md="6" lg="4" class="p-3">
+		<div class="shader p-3 rounded">
+			<div class="d-flex align-items-center">
+				<b-avatar variant="warning" size="4rem" class="mr-3"></b-avatar>
+				<span class="mr-3">
+					<h4 style="display: inline">{{ user.first_name }}</h4>
+				</span>
 				<p class="text-right m-0" :id="`popover-target-${user._id.$oid}`">
 					<font-awesome-icon icon="dog" />
 					{{ user.dogs.length }}
@@ -11,29 +14,29 @@
 					<b-table striped :items="user.dogs" :fields="dogFields"></b-table>
 				</b-popover>
 			</div>
-		</template>
-		<b-card-text>
-			Lives
-			{{
-			Math.round(
-			getDistanceFromLatLonInKm(
-			user.location.coordinates[1],
-			user.location.coordinates[0],
-			userProfile.location.coordinates[1],
-			userProfile.location.coordinates[0]
-			) * 10
-			) / 10
-			}}km away from you
-		</b-card-text>
-		<template v-slot:footer>
-			<b-btn variant="success" @click="toggleMeetupModal" :id="user._id.$oid">Go walkies!</b-btn>
-		</template>
-	</b-card>
+			<div>
+				<p>
+					Lives
+					{{
+					Math.round(
+					getDistanceFromLatLonInKm(
+					user.location.coordinates[1],
+					user.location.coordinates[0],
+					userProfile.location.coordinates[1],
+					userProfile.location.coordinates[0]
+					) * 10
+					) / 10
+					}}km away from you
+				</p>
+				<b-btn variant="outline-secondary" @click="toggleMeetupModal" :id="user._id.$oid">Go walkies!</b-btn>
+			</div>
+		</div>
+	</b-col>
 </template>
 
 <script>
 	export default {
-		props: ['user'],
+		props: ["user"],
 		data() {
 			return {
 				dogFields: ["name", "breed"]
@@ -61,8 +64,8 @@
 				return d;
 			},
 			toggleMeetupModal() {
-				this.$store.commit('selectUser', this.user);
-				this.$emit('open-modal');
+				this.$store.commit("selectUser", this.user);
+				this.$emit("open-modal");
 			}
 		},
 		computed: {
@@ -75,14 +78,13 @@
 			mapboxKey() {
 				return this.$store.getters.getMapboxKey;
 			}
-		},
+		}
 	};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-	#eventMapContainer {
-		width: 100%;
-		height: 300px;
+	.shader {
+		background: rgba(255, 255, 255, 0.75);
 	}
 </style>

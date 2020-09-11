@@ -20,7 +20,8 @@ const getDefaultState = () => {
           1: "1 mile",
           5: "5 miles",
           10: "10 miles",
-          20: "20 miles,",
+		  20: "20 miles",
+		  500: "500 miles"
         },
       },
       selected: 10,
@@ -88,7 +89,7 @@ export default new Vuex.Store({
       state.selectedUser = user;
     },
     setSearchDistance(state, distance) {
-      state.searchParameters.selected = distance;
+      state.searchParameters.distance.selected = distance;
     },
   },
   actions: {
@@ -192,8 +193,12 @@ export default new Vuex.Store({
       }
     },
     async searchUsers(context) {
-      const userSearchResults = await axios.get(
+      console.log(context.state.searchParameters.distance.selected);
+      const userSearchResults = await axios.post(
         "https://walkies-api.herokuapp.com/api/user/search",
+        {
+          distance: context.state.searchParameters.distance.selected,
+        },
         {
           headers: {
             Authorization: "Bearer " + context.getters.getToken,

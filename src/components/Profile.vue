@@ -1,7 +1,7 @@
 <template>
 	<b-container>
 		<b-row class="p-3">
-			<h2>Hi, {{ this.$store.state.userProfile.first_name }}! Manage your events your pack below!</h2>
+			<h2>Hi, {{ this.$store.state.userProfile.first_name }}!</h2>
 		</b-row>
 
 		<!-- Event Modal -->

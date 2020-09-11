@@ -9,22 +9,20 @@
 		<b-row>
 			<!-- Dropdown to select the radius to search -->
 			<b-dropdown
-				:text="`${$store.state.searchParameters.selected} mile${$store.state.searchParameters.selected === 1 ? '' : 's'}`"
+				:text="$store.state.searchParameters.distance.options[$store.state.searchParameters.distance.selected]"
 				class="m-2"
 			>
 				<b-dropdown-item-button
-					v-for="distance in $store.state.searchParameters.options"
+					v-for="distance in Object.keys($store.state.searchParameters.distance.options)"
 					:key="distance"
 					@click="changeSearchDistance(distance)"
-					:variant="$store.state.searchParameters.selected == distance ? 'success' : ''"
-				>{{`${distance} mile${distance === 1 ? '' : 's'}`}}</b-dropdown-item-button>
+					:variant="$store.state.searchParameters.distance.selected == distance ? 'success' : ''"
+				>{{ $store.state.searchParameters.distance.options[distance] }}</b-dropdown-item-button>
 			</b-dropdown>
 		</b-row>
 		<b-row>
 			<!-- List of users returned from query -->
-			<b-col cols="6" v-for="user in $store.state.searchResults" :key="user._id.$oid">
-				<User v-bind:user="user" v-on:open-modal="openMeetupModal(user)" />
-			</b-col>
+				<User v-for="user in $store.state.searchResults" :key="user._id.$oid" v-bind:user="user" v-on:open-modal="openMeetupModal(user)" />
 		</b-row>
 
 		<!-- NewEventModal -->
