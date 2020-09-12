@@ -4,6 +4,24 @@ const axios = require("axios");
 
 Vue.use(Vuex);
 
+const deg2rad = deg => {
+  return deg * (Math.PI / 180);
+};
+const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+  var R = 3963.2; // Radius of the earth in km
+  var dLat = deg2rad(lat2 - lat1);
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c; // Distance in km
+  return d;
+};
+
 // initial state
 const getDefaultState = () => {
   return {
@@ -20,15 +38,15 @@ const getDefaultState = () => {
           1: "1 mile",
           5: "5 miles",
           10: "10 miles",
-		  20: "20 miles",
-		  500: "500 miles"
-        },
+          20: "20 miles",
+          500: "500 miles"
+        }
       },
       selected: 10,
-      options: [1, 5, 10, 20],
+      options: [1, 5, 10, 20]
     },
     searchResults: [],
-    mapboxKey: process.env.VUE_APP_MAPBOXKEY,
+    mapboxKey: process.env.VUE_APP_MAPBOXKEY
   };
 };
 
@@ -58,7 +76,7 @@ export default new Vuex.Store({
     },
     getMapboxKey(state) {
       return state.mapboxKey;
-    },
+    }
   },
   mutations: {
     retrieveToken(state, token) {
@@ -77,7 +95,7 @@ export default new Vuex.Store({
       state.userEvents = events;
     },
     removeDogFromProfile(state, dogID) {
-      state.userDogs = state.userDogs.filter((x) => x._id.$oid != dogID);
+      state.userDogs = state.userDogs.filter(x => x._id.$oid != dogID);
     },
     retrieveSearchResults(state, searchResults) {
       state.searchResults = searchResults;
@@ -90,7 +108,7 @@ export default new Vuex.Store({
     },
     setSearchDistance(state, distance) {
       state.searchParameters.distance.selected = distance;
-    },
+    }
   },
   actions: {
     // log in function
@@ -99,9 +117,9 @@ export default new Vuex.Store({
         axios
           .post("https://walkies-api.herokuapp.com/api/auth/login", {
             email: credentials.email,
-            password: credentials.password,
+            password: credentials.password
           })
-          .then((response) => {
+          .then(response => {
             const token = response.data.token;
             // add token to local storage
             localStorage.setItem("token", token);
@@ -109,8 +127,7 @@ export default new Vuex.Store({
             context.commit("retrieveToken", token);
             resolve(response);
           })
-          .catch((error) => {
-            console.log(error);
+          .catch(error => {
             reject(error);
           });
       });
@@ -126,10 +143,10 @@ export default new Vuex.Store({
         axios
           .get("https://walkies-api.herokuapp.com/api/user", {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           })
-          .then((response) => {
+          .then(response => {
             const userProfile = JSON.parse(response.data.user);
             userProfile.events.forEach((event, i) => {
               userProfile.events[i] = JSON.parse(event);
@@ -137,15 +154,7 @@ export default new Vuex.Store({
             userProfile.dogs.forEach((dog, i) => {
               userProfile.dogs[i] = JSON.parse(dog);
             });
-            console.log(userProfile);
             context.commit("retrieveUserProfile", userProfile);
-            // context.commit(
-            //   "retrieveUserDogs",
-            //   response.data.dogs.length == 0
-            //     ? []
-            //     : JSON.parse(response.data.dogs)
-            // );
-            // context.commit("retrieveUserEvents", response.data.events.sort((a ,b) => a.time.$date - b.time.$date));
           });
       }
     },
@@ -154,10 +163,10 @@ export default new Vuex.Store({
         axios
           .get("https://walkies-api.herokuapp.com/api/dogs", {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           })
-          .then((response) => {
+          .then(response => {
             context.commit("retrieveUserDogs", JSON.parse(response.data.dogs));
           });
       }
@@ -167,10 +176,10 @@ export default new Vuex.Store({
         axios
           .get("https://walkies-api.herokuapp.com/api/events", {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           })
-          .then((response) => {
+          .then(response => {
             context.commit(
               "retrieveUserEvents",
               JSON.parse(response.data.events)
@@ -183,43 +192,50 @@ export default new Vuex.Store({
         axios
           .delete(`https://walkies-api.herokuapp.com/api/dogs/${dogID}`, {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           })
-          .then((response) => {
-            console.log(response);
-            context.dispatch("retrieveUserProfile");
-          });
+          .then(context.dispatch("retrieveUserProfile"));
       }
     },
     async searchUsers(context) {
-      console.log(context.state.searchParameters.distance.selected);
       const userSearchResults = await axios.post(
         "https://walkies-api.herokuapp.com/api/user/search",
         {
-          distance: context.state.searchParameters.distance.selected,
+          distance: context.state.searchParameters.distance.selected
         },
         {
           headers: {
-            Authorization: "Bearer " + context.getters.getToken,
-          },
+            Authorization: "Bearer " + context.getters.getToken
+          }
         }
       );
-      console.log(userSearchResults.data.users);
 
-      userSearchResults.data.users.forEach((user, userIndex) => {
-        userSearchResults.data.users[userIndex] = JSON.parse(user);
-        userSearchResults.data.users[userIndex].dogs.forEach(
-          (dog, dogIndex) => {
-            userSearchResults.data.users[userIndex].dogs[dogIndex] = JSON.parse(
-              dog
-            );
-          }
-        );
+      const users = userSearchResults.data.users;
+
+      users.forEach((user, userIndex) => {
+        users[userIndex] = JSON.parse(user);
+        users[userIndex].dogs.forEach((dog, dogIndex) => {
+          users[userIndex].dogs[dogIndex] = JSON.parse(dog);
+        });
       });
-      console.log(userSearchResults.data.users);
 
-      context.commit("retrieveSearchResults", userSearchResults.data.users);
+      //  for each user, get the distance from the loggin in user's location and store on the object
+      users.forEach(user => {
+        //   calculate distance
+        const distance = getDistanceFromLatLonInKm(
+          user.location.coordinates[1],
+          user.location.coordinates[0],
+          context.state.userProfile.location.coordinates[1],
+          context.state.userProfile.location.coordinates[0]
+        );
+        user.distance = distance;
+      });
+
+      //   sort users
+      users.sort((x, y) => x.distance - y.distance);
+
+      context.commit("retrieveSearchResults", users);
     },
     sendMeetingInvite(context, details) {
       axios
@@ -229,18 +245,17 @@ export default new Vuex.Store({
             location: details.location,
             time: details.time,
             invited: details.invited,
-            length: details.length,
+            length: details.length
           },
           {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           }
         )
-        .catch((err) => console.log("AXIOS ERROR: ", err));
+        .catch(err => console.log("AXIOS ERROR: ", err));
     },
     updateEvent(context, details) {
-      console.log(details);
       axios
         .put(
           `https://walkies-api.herokuapp.com/api/events/${details.id}`,
@@ -249,12 +264,12 @@ export default new Vuex.Store({
             time: details.time,
             length: details.length,
             proposer: details.proposer,
-            invited: details.invited,
+            invited: details.invited
           },
           {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           }
         )
         .then(context.dispatch("retrieveUserProfile"));
@@ -266,8 +281,8 @@ export default new Vuex.Store({
           {},
           {
             headers: {
-              Authorization: "Bearer " + context.getters.getToken,
-            },
+              Authorization: "Bearer " + context.getters.getToken
+            }
           }
         )
         .then(context.dispatch("retrieveUserProfile"));
@@ -276,11 +291,11 @@ export default new Vuex.Store({
       axios
         .delete(`https://walkies-api.herokuapp.com/api/events/decline/${id}`, {
           headers: {
-            Authorization: "Bearer " + context.getters.getToken,
-          },
+            Authorization: "Bearer " + context.getters.getToken
+          }
         })
         .then(context.dispatch("retrieveUserProfile"));
-    },
+    }
   },
-  modules: {},
+  modules: {}
 });

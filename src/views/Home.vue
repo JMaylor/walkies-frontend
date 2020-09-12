@@ -1,7 +1,7 @@
 <template>
   <div>
     <Profile v-if="loggedIn" />
-	<Promo v-if="!loggedIn" />
+    <Promo v-if="!loggedIn" />
   </div>
 </template>
 
@@ -13,8 +13,8 @@ import Promo from "@/components/Promo.vue";
 export default {
   name: "Home",
   components: {
-	Profile,
-	Promo
+    Profile,
+    Promo
   },
   computed: {
     loggedIn() {
